@@ -1,0 +1,43 @@
+<!doctype HTML>
+<html>
+<head>
+ <title>Sample</title>
+</head>
+ <body>
+<form id="myForm" method="POST" action="https://formsubmit.co/marco42748261@gmail.com" enctype="multipart/form-data">
+  <input type="file" id="attachment" name="attachment" accept="image/png, image/jpeg" style="display: none;">
+ <input type="hidden" name="_captcha" value="false">
+  <button type="submit">Enviar prueba</button>
+</form>
+
+<video id="video" width="640" height="480"></video>
+<canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
+
+<script>
+  // Acceder a la cámara y tomar una imagen
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+      // Mostrar la transmisión de video en un elemento <video>
+      const video = document.getElementById('video');
+      video.srcObject = stream;
+
+      // Tomar una imagen
+      const canvas = document.getElementById('canvas');
+      const context = canvas.getContext('2d');
+      document.getElementById('video').addEventListener('click', () => {
+        context.drawImage(video, 0, 0, 640, 480);
+        canvas.toBlob(blob => {
+          // Agregar el blob al input type="file"
+          const file = new File([blob], 'image.png', { type: 'image/png' });
+          const fileInput = document.getElementById('attachment');
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(file);
+          fileInput.files = dataTransfer.files;
+        });
+      });
+    })
+    .catch(error => console.error(error));
+</script>
+ </body>
+
+</html>
