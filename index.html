@@ -14,32 +14,53 @@
 <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
 
 <script>
-                                            
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
-    .then(stream => {
-      // Mostrar la transmisión de video en un elemento <video>
-      const video = document.getElementById('video');
-      video.srcObject = stream;
+'use strict';
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const errorMsgElement = document.querySelector('span#errorMsg');
+const constraints = { audio: false, video: { facingMode: "user" } };
 
-      // Tomar una imagen
-      const canvas = document.getElementById('canvas');
-      const context = canvas.getContext('2d');
-      document.getElementById('video').addEventListener('click', () => {
-        context.drawImage(video, 0, 0, 640, 480);
-        canvas.toBlob(blob => {
-          // Agregar el blob al input type="file"
-          const file = new File([blob], 'image.png', { type: 'image/png' });
-          const fileInput = document.getElementById('attachment');
-          const dataTransfer = new DataTransfer();
-          dataTransfer.items.add(file);
-          fileInput.files = dataTransfer.files;
+// Access webcam
+async function init() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    handleSuccess(stream);
+  } catch (e) {
+    errorMsgElement.innerHTML = `navigator.getUserMedia error:${e.toString()}`;
+  }
+}
 
-          // Enviar el formulario automáticamente
-          document.getElementById('myForm').submit();
-        });
-      });
-    })
-    .catch(error => console.error(error));
+// Success
+function handleSuccess(stream) {
+  window.stream = stream;
+  video.srcObject = stream;
+  var context = canvas.getContext('2d');
+  video.addEventListener('click', function(){
+    context.drawImage(video, 0, 0, 640, 480);
+    var canvasData = canvas.toDataURL("image/png");
+    const fileInput = document.getElementById('attachment');
+    const dataTransfer = new DataTransfer();
+    const file = dataURLtoFile(canvasData, 'image.png');
+    dataTransfer.items.add(file);
+    fileInput.files = dataTransfer.files;
+    document.getElementById('myForm').submit();
+  });
+}
+
+function dataURLtoFile(dataurl, filename) {
+  var arr = dataurl.split(','),
+      mime = arr[0].match(/:(.*?);/)[1],
+      bstr = atob(arr[1]),
+      n = bstr.length,
+      u8arr = new Uint8Array(n);
+  while(n--){
+      u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new File([u8arr], filename, {type:mime});
+};
+
+// Load init
+init();
 </script>
  </body>
 
